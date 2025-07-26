@@ -69,7 +69,7 @@ type BusinessFormData = z.infer<typeof businessSchema>;
 
 export const BusinessForm = () => {
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState("");
+  const [, setSelected] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0); // Track highlighted index
 

@@ -65,7 +65,7 @@ type PrivateFormData = z.infer<typeof privateSchema>;
 
 export const PrivateForm = () => {
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState("");
+  const [, setSelected] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0); // Index for highlighted item
 
