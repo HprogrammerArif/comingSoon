@@ -112,7 +112,7 @@ export const PrivateForm = () => {
 
     try {
       const response = await axios.post(
-        "https://api.swish.ma//accounts/api/v1/pre-subscription",
+        "https://api.swish.ma/accounts/api/v1/pre-subscription",
         userData
       );
       console.log({ response });
