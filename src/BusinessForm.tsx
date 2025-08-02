@@ -3,7 +3,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "./components/ui/input";
 import { Button } from "./components/ui/button";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import PhoneInput from "react-phone-input-2";
@@ -104,6 +104,8 @@ export const BusinessForm = () => {
         "https://api.swish.ma/accounts/api/v1/pre-subscription",
         userData
       );
+
+      console.log({ response });
       
       toast.success("Business Profile Registered successfully!", {
         position: "top-right",
@@ -113,11 +115,15 @@ export const BusinessForm = () => {
       // reset the form
         reset();
         setPhone("");
-    } catch (error) {
-      toast.error(error?.response?.data?.email[0], {
+    } catch (error: unknown) {
+
+      if(error instanceof AxiosError){
+toast.error(error?.response?.data?.email[0] || "Something went wrong!", {
         position: "top-right",
         autoClose: 2000,
       });
+      }
+      
       console.log({ error });
       reset();
       setPhone("");
