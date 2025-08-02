@@ -80,6 +80,7 @@ export const BusinessForm = () => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isValid },
   } = useForm<BusinessFormData>({
     resolver: zodResolver(businessSchema),
@@ -93,26 +94,33 @@ export const BusinessForm = () => {
       email: data.email,
       role: "company",
       company_name: data.companyName,
+      city: data.city,
       telephone: data.phone,
       ice_number: data.iceNumber,
     };
 
     try {
       const response = await axios.post(
-        "http://10.10.13.59:8001/accounts/api/v1/pre-subscription",
+        "https://api.swish.ma/accounts/api/v1/pre-subscription",
         userData
       );
-      console.log({ response });
+      
       toast.success("Business Profile Registered successfully!", {
         position: "top-right",
         autoClose: 2000,
       });
+
+      // reset the form
+        reset();
+        setPhone("");
     } catch (error) {
-      toast.error("Something went wrong!", {
+      toast.error(error?.response?.data?.email[0], {
         position: "top-right",
         autoClose: 2000,
       });
       console.log({ error });
+      reset();
+      setPhone("");
     }
   };
 
@@ -259,12 +267,12 @@ export const BusinessForm = () => {
       </div>
 
       <Button
-  type="submit"
-  disabled={!isValid || !phone}
-  className="w-full h-12 mt-4 text-sm font-medium cursor-pointer disabled:opacity-50"
->
-  S'abonner
-</Button>
+        type="submit"
+        disabled={!isValid || !phone}
+        className="w-full h-12 mt-4 text-sm font-medium cursor-pointer disabled:opacity-50"
+      >
+        S'abonner
+      </Button>
       <ToastContainer
         position="top-right"
         autoClose={2000}

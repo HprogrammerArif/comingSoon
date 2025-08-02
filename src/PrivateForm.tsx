@@ -93,11 +93,11 @@ export const PrivateForm = () => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isValid },
   } = useForm<PrivateFormData>({
     resolver: zodResolver(privateSchema),
     mode: "onChange",
-   
   });
   const [phone, setPhone] = useState(""); // Initialize the phone state
 
@@ -112,7 +112,7 @@ export const PrivateForm = () => {
 
     try {
       const response = await axios.post(
-        "http://10.10.13.59:8001/accounts/api/v1/pre-subscription",
+        "https://api.swish.ma//accounts/api/v1/pre-subscription",
         userData
       );
       console.log({ response });
@@ -120,12 +120,18 @@ export const PrivateForm = () => {
         position: "top-right",
         autoClose: 2000,
       });
+
+      // reset the form
+        reset();
+        setPhone("");
     } catch (error) {
-      toast.error("Something went wrong!", {
+      toast.error(error?.response?.data?.email[0], {
         position: "top-right",
         autoClose: 2000,
       });
       console.log({ error });
+      reset();
+      setPhone("");
     }
   };
 
@@ -230,13 +236,13 @@ export const PrivateForm = () => {
         />
       </div>
 
-       <Button
-  type="submit"
-  disabled={!isValid || !phone}
-  className="w-full h-12 mt-4 text-sm font-medium cursor-pointer disabled:opacity-50"
->
-  S'abonner
-</Button>
+      <Button
+        type="submit"
+        disabled={!isValid || !phone}
+        className="w-full h-12 mt-4 text-sm font-medium cursor-pointer disabled:opacity-50"
+      >
+        S'abonner
+      </Button>
       <ToastContainer
         position="top-right"
         autoClose={2000}
