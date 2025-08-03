@@ -126,15 +126,11 @@ export const BusinessForm = () => {
       ice_number: data.iceNumber,
     };
 
-    console.log({ userData });
-
     try {
       const response = await axios.post(
         "https://api.swish.ma/accounts/api/v1/pre-subscription",
         userData
       );
-
-      console.log({ response });
 
       toast.success("Business Profile Registered successfully!", {
         position: "top-right",
@@ -155,7 +151,6 @@ export const BusinessForm = () => {
         );
       }
 
-      console.log({ error });
       reset();
       setPhone("");
       setSearch("");

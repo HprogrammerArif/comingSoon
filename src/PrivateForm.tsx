@@ -120,14 +120,13 @@ export const PrivateForm = () => {
       full_name: data.fullName,
       city: data.city,
     };
-    console.log({ userData });
 
     try {
       const response = await axios.post(
         "https://api.swish.ma/accounts/api/v1/pre-subscription",
         userData
       );
-      console.log({ response });
+
       toast.success("Profile Registered successfully!", {
         position: "top-right",
         autoClose: 2000,
@@ -146,7 +145,7 @@ export const PrivateForm = () => {
           }
         );
       }
-      console.log({ error });
+
       reset();
       setPhone("");
       setSearch("");
