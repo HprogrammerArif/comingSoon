@@ -8,7 +8,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Command, CommandItem, CommandList } from "@/components/ui/command";
 
 const cities = [
@@ -65,15 +65,35 @@ type PrivateFormData = z.infer<typeof privateSchema>;
 
 export const PrivateForm = () => {
   const [search, setSearch] = useState("");
-  const [, setSelected] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [highlightedIndex, setHighlightedIndex] = useState(0); // Index for highlighted item
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const [phone, setPhone] = useState("");
 
   const filteredCities = search
     ? cities.filter((city) => city.toLowerCase().includes(search.toLowerCase()))
     : [];
 
-  // Handle keyboard events for navigation and selection
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors, isValid },
+  } = useForm<PrivateFormData>({
+    resolver: zodResolver(privateSchema),
+    mode: "onChange",
+  });
+
+  // Sync phone state with form
+  useEffect(() => {
+    setValue("phone", phone, { shouldValidate: true });
+  }, [phone, setValue]);
+
+  // Sync city state with form
+  useEffect(() => {
+    setValue("city", search, { shouldValidate: true });
+  }, [search, setValue]);
+
   const handleKeyDown: React.KeyboardEventHandler = (e) => {
     if (e.key === "ArrowDown") {
       setHighlightedIndex((prevIndex) =>
@@ -83,32 +103,24 @@ export const PrivateForm = () => {
       setHighlightedIndex((prevIndex) => Math.max(prevIndex - 1, 0));
     } else if (e.key === "Enter") {
       setSearch(filteredCities[highlightedIndex]);
-      setSelected(filteredCities[highlightedIndex]);
+      setValue("city", filteredCities[highlightedIndex], {
+        shouldValidate: true,
+      });
       setIsDropdownOpen(false);
     } else if (e.key === "Escape") {
       setIsDropdownOpen(false);
     }
   };
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isValid },
-  } = useForm<PrivateFormData>({
-    resolver: zodResolver(privateSchema),
-    mode: "onChange",
-  });
-  const [phone, setPhone] = useState(""); // Initialize the phone state
-
   const onSubmit = async (data: PrivateFormData) => {
     const userData = {
-      full_name: data.fullName,
       email: data.email,
       role: "private",
+      phone_number: data.phone,
+      full_name: data.fullName,
       city: data.city,
-      telephone: data.phone,
     };
+    console.log({ userData });
 
     try {
       const response = await axios.post(
@@ -121,9 +133,9 @@ export const PrivateForm = () => {
         autoClose: 2000,
       });
 
-      // reset the form
       reset();
       setPhone("");
+      setSearch("");
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         toast.error(
@@ -134,10 +146,10 @@ export const PrivateForm = () => {
           }
         );
       }
-
       console.log({ error });
       reset();
       setPhone("");
+      setSearch("");
     }
   };
 
@@ -178,11 +190,10 @@ export const PrivateForm = () => {
         )}
       </div>
 
-      {/* Village Search */}
       <div className="relative w-full max-w-xl mx-auto">
         <label
           htmlFor="city"
-          className="block text-sm font-medium text-gray-800 "
+          className="block text-sm font-medium text-gray-800"
         >
           Ville
         </label>
@@ -193,15 +204,14 @@ export const PrivateForm = () => {
             setSearch(e.target.value);
             setIsDropdownOpen(true);
           }}
-          onKeyDown={handleKeyDown} // Add keydown handler
-          onFocus={() => setIsDropdownOpen(true)} // Open dropdown on focus
+          onKeyDown={handleKeyDown}
+          onFocus={() => setIsDropdownOpen(true)}
           placeholder="Ville"
           className="h-12 pr-10 pl-4 shadow-md rounded-md"
           id="city"
         />
-
         {isDropdownOpen && filteredCities.length > 0 && (
-          <div className="absolute top-full left-0  w-full bg-white border rounded-lg shadow-md z-50">
+          <div className="absolute top-full left-0 w-full bg-white border rounded-lg shadow-md z-50">
             <Command className="w-full">
               <CommandList className="max-h-[400px] overflow-y-auto">
                 {filteredCities.map((city, index) => (
@@ -210,7 +220,7 @@ export const PrivateForm = () => {
                     value={city}
                     onSelect={() => {
                       setSearch(city);
-                      setSelected(city);
+                      setValue("city", city, { shouldValidate: true });
                       setIsDropdownOpen(false);
                     }}
                     className={`${
@@ -236,7 +246,7 @@ export const PrivateForm = () => {
         <PhoneInput
           country={"ma"}
           value={phone}
-          onChange={setPhone}
+          onChange={(value) => setPhone(value)}
           placeholder="Numéro de téléphone"
           inputStyle={{ height: "48px", width: "100%", borderRadius: "8px" }}
         />
@@ -244,7 +254,7 @@ export const PrivateForm = () => {
 
       <Button
         type="submit"
-        disabled={!isValid || !phone}
+        disabled={!isValid}
         className="w-full h-12 mt-4 text-sm font-medium cursor-pointer disabled:opacity-50"
       >
         S'abonner

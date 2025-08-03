@@ -8,7 +8,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Command, CommandItem, CommandList } from "@/components/ui/command";
 
 const cities = [
@@ -69,9 +69,9 @@ type BusinessFormData = z.infer<typeof businessSchema>;
 
 export const BusinessForm = () => {
   const [search, setSearch] = useState("");
-  const [, setSelected] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [highlightedIndex, setHighlightedIndex] = useState(0); // Track highlighted index
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const [phone, setPhone] = useState("");
 
   const filteredCities = search
     ? cities.filter((city) => city.toLowerCase().includes(search.toLowerCase()))
@@ -81,56 +81,23 @@ export const BusinessForm = () => {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isValid },
   } = useForm<BusinessFormData>({
     resolver: zodResolver(businessSchema),
     mode: "onChange",
   });
 
-  const [phone, setPhone] = useState(""); // Phone state
+  // Sync phone state with form
+  useEffect(() => {
+    setValue("phone", phone, { shouldValidate: true });
+  }, [phone, setValue]);
 
-  const onSubmit = async (data: BusinessFormData) => {
-    const userData = {
-      email: data.email,
-      role: "company",
-      company_name: data.companyName,
-      city: data.city,
-      telephone: data.phone,
-      ice_number: data.iceNumber,
-    };
+  // Sync city state with form
+  useEffect(() => {
+    setValue("city", search, { shouldValidate: true });
+  }, [search, setValue]);
 
-    try {
-      const response = await axios.post(
-        "https://api.swish.ma/accounts/api/v1/pre-subscription",
-        userData
-      );
-
-      console.log({ response });
-      
-      toast.success("Business Profile Registered successfully!", {
-        position: "top-right",
-        autoClose: 2000,
-      });
-
-      // reset the form
-        reset();
-        setPhone("");
-    } catch (error: unknown) {
-
-      if(error instanceof AxiosError){
-toast.error(error?.response?.data?.email[0] || "Something went wrong!", {
-        position: "top-right",
-        autoClose: 2000,
-      });
-      }
-      
-      console.log({ error });
-      reset();
-      setPhone("");
-    }
-  };
-
-  // Handle keyboard events
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
       setHighlightedIndex((prevIndex) =>
@@ -140,10 +107,58 @@ toast.error(error?.response?.data?.email[0] || "Something went wrong!", {
       setHighlightedIndex((prevIndex) => Math.max(prevIndex - 1, 0));
     } else if (e.key === "Enter") {
       setSearch(filteredCities[highlightedIndex]);
-      setSelected(filteredCities[highlightedIndex]);
+      setValue("city", filteredCities[highlightedIndex], {
+        shouldValidate: true,
+      });
       setIsDropdownOpen(false);
     } else if (e.key === "Escape") {
-      setIsDropdownOpen(false); // Close dropdown on Escape
+      setIsDropdownOpen(false);
+    }
+  };
+
+  const onSubmit = async (data: BusinessFormData) => {
+    const userData = {
+      email: data.email,
+      role: "company",
+      company_name: data.companyName,
+      city: data.city,
+      phone_number: data.phone,
+      ice_number: data.iceNumber,
+    };
+
+    console.log({ userData });
+
+    try {
+      const response = await axios.post(
+        "https://api.swish.ma/accounts/api/v1/pre-subscription",
+        userData
+      );
+
+      console.log({ response });
+
+      toast.success("Business Profile Registered successfully!", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+
+      reset();
+      setPhone("");
+      setSearch("");
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        toast.error(
+          error?.response?.data?.email[0] || "Something went wrong!",
+          {
+            position: "top-right",
+            autoClose: 2000,
+          }
+        );
+      }
+
+      console.log({ error });
+      reset();
+      setPhone("");
+      setSearch("");
     }
   };
 
@@ -152,7 +167,7 @@ toast.error(error?.response?.data?.email[0] || "Something went wrong!", {
       <div>
         <label
           htmlFor="companyName"
-          className="block text-sm font-medium text-gray-200 "
+          className="block text-sm font-medium text-gray-200"
         >
           Nom de l'entreprise
         </label>
@@ -160,7 +175,6 @@ toast.error(error?.response?.data?.email[0] || "Something went wrong!", {
           id="companyName"
           {...register("companyName")}
           placeholder="Nom de l'entreprise"
-          className=""
         />
         {errors.companyName && (
           <span className="text-red-500">{errors.companyName.message}</span>
@@ -170,7 +184,7 @@ toast.error(error?.response?.data?.email[0] || "Something went wrong!", {
       <div>
         <label
           htmlFor="email"
-          className="block text-sm font-medium text-gray-200 "
+          className="block text-sm font-medium text-gray-200"
         >
           Adresse e-mail
         </label>
@@ -188,7 +202,7 @@ toast.error(error?.response?.data?.email[0] || "Something went wrong!", {
       <div className="relative w-full max-w-xl mx-auto">
         <label
           htmlFor="city"
-          className="block text-sm font-medium text-gray-200 "
+          className="block text-sm font-medium text-gray-200"
         >
           Ville
         </label>
@@ -199,12 +213,12 @@ toast.error(error?.response?.data?.email[0] || "Something went wrong!", {
             setSearch(e.target.value);
             setIsDropdownOpen(true);
           }}
-          onKeyDown={handleKeyDown} // Add keydown handler
+          onKeyDown={handleKeyDown}
+          onFocus={() => setIsDropdownOpen(true)}
           placeholder="Ville"
           className="h-12 pr-10 pl-4 shadow-md rounded-md"
           id="city"
         />
-
         {isDropdownOpen && filteredCities.length > 0 && (
           <div className="absolute top-full left-0 mt-1 w-full bg-white border rounded-lg shadow-md z-50">
             <Command className="w-full">
@@ -215,7 +229,7 @@ toast.error(error?.response?.data?.email[0] || "Something went wrong!", {
                     value={city}
                     onSelect={() => {
                       setSearch(city);
-                      setSelected(city);
+                      setValue("city", city, { shouldValidate: true });
                       setIsDropdownOpen(false);
                     }}
                     className={`${
@@ -229,27 +243,26 @@ toast.error(error?.response?.data?.email[0] || "Something went wrong!", {
             </Command>
           </div>
         )}
-        {/* Show message when no cities match */}
-        {/* {isDropdownOpen && filteredCities.length === 0 && (
+        {isDropdownOpen && filteredCities.length === 0 && (
           <div className="absolute top-full left-0 mt-1 w-full bg-white border rounded-lg shadow-md z-50">
             <div className="p-2 text-center text-gray-500">
               Aucune ville trouvée
             </div>
           </div>
-        )} */}
+        )}
       </div>
 
       <div>
         <label
           htmlFor="phone"
-          className="block text-sm font-medium text-gray-200 "
+          className="block text-sm font-medium text-gray-200"
         >
           Numéro de téléphone
         </label>
         <PhoneInput
           country={"ma"}
           value={phone}
-          onChange={setPhone}
+          onChange={(value) => setPhone(value)}
           placeholder="Numéro de téléphone"
           inputStyle={{ height: "48px", width: "100%", borderRadius: "8px" }}
         />
@@ -261,7 +274,7 @@ toast.error(error?.response?.data?.email[0] || "Something went wrong!", {
       <div>
         <label
           htmlFor="iceNumber"
-          className="block text-sm font-medium text-gray-200 "
+          className="block text-sm font-medium text-gray-200"
         >
           Numéro ICE
         </label>
@@ -270,11 +283,14 @@ toast.error(error?.response?.data?.email[0] || "Something went wrong!", {
           {...register("iceNumber")}
           placeholder="Numéro ICE"
         />
+        {errors.iceNumber && (
+          <span className="text-red-500">{errors.iceNumber.message}</span>
+        )}
       </div>
 
       <Button
         type="submit"
-        disabled={!isValid || !phone}
+        disabled={!isValid}
         className="w-full h-12 mt-4 text-sm font-medium cursor-pointer disabled:opacity-50"
       >
         S'abonner
