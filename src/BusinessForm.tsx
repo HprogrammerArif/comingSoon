@@ -55,14 +55,13 @@ const cities = [
 ];
 
 const businessSchema = z.object({
-  companyName: z.string().min(1, "Ce champ est requis"),
+  companyName: z.string().min(2, "Ce champ est requis"),
   email: z.string().email("Veuillez entrer une adresse e-mail valide"),
-  city: z.string().optional(),
-  phone: z.string().optional(),
+  city: z.string().min(2, "La ville est requise"),
+  phone: z.string().min(5, "Le numéro de téléphone est requis"),
   iceNumber: z
     .string()
-    .length(15, "Le numéro ICE doit contenir exactement 15 chiffres")
-    .optional(),
+    .length(15, "Le numéro ICE doit contenir exactement 15 chiffres"),
 });
 
 type BusinessFormData = z.infer<typeof businessSchema>;
@@ -196,7 +195,7 @@ export const BusinessForm = () => {
         )}
       </div>
 
-      <div className="relative w-full max-w-xl mx-auto">
+      {/* <div className="relative w-full max-w-xl mx-auto">
         <label
           htmlFor="city"
           className="block text-sm font-medium text-gray-200"
@@ -247,6 +246,54 @@ export const BusinessForm = () => {
             </div>
           </div>
         )}
+      </div> */}
+      <div className="relative w-full max-w-xl mx-auto">
+        <label
+          htmlFor="city"
+          className="block text-sm font-medium text-gray-200"
+        >
+          Ville
+        </label>
+        <Input
+          type="text"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setIsDropdownOpen(true);
+          }}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setIsDropdownOpen(true)}
+          placeholder="Ville"
+          className="h-12 pr-10 pl-4 shadow-md rounded-md"
+          id="city"
+        />
+        {/* {errors.city && (
+  <span className="text-red-500">{errors.city.message}</span>
+)} */}
+        {isDropdownOpen && filteredCities.length > 0 && (
+          <div className="absolute top-full left-0 w-full bg-white border rounded-lg shadow-md z-50">
+            <Command className="w-full">
+              <CommandList className="max-h-[400px] overflow-y-auto">
+                {filteredCities.map((city, index) => (
+                  <CommandItem
+                    key={city}
+                    value={city}
+                    onSelect={() => {
+                      setSearch(city);
+                      setValue("city", city, { shouldValidate: true });
+                      setIsDropdownOpen(false);
+                    }}
+                    className={`${
+                      highlightedIndex === index ? "bg-primary text-white" : ""
+                    } cursor-pointer`}
+                  >
+                    {city}
+                  </CommandItem>
+                ))}
+              </CommandList>
+            </Command>
+          </div>
+        )}
       </div>
 
       <div>
@@ -263,9 +310,9 @@ export const BusinessForm = () => {
           placeholder="Numéro de téléphone"
           inputStyle={{ height: "48px", width: "100%", borderRadius: "8px" }}
         />
-        {errors.phone && (
+        {/* {errors.phone && (
           <span className="text-red-500">{errors.phone.message}</span>
-        )}
+        )} */}
       </div>
 
       <div>

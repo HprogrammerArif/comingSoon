@@ -55,10 +55,10 @@ const cities = [
 ];
 
 const privateSchema = z.object({
-  fullName: z.string().min(1, "Ce champ est requis"),
+  fullName: z.string().min(2, "Ce champ est requis"),
   email: z.string().email("Veuillez entrer une adresse e-mail valide"),
-  city: z.string().optional(),
-  phone: z.string().optional(),
+  city: z.string().min(2, "La ville est requise"),
+  phone: z.string().min(5, "Le numéro de téléphone est requis"),
 });
 
 type PrivateFormData = z.infer<typeof privateSchema>;
@@ -121,12 +121,14 @@ export const PrivateForm = () => {
       city: data.city,
     };
 
+    console.log({ userData });
+
     try {
       const response = await axios.post(
         "https://api.swish.ma/accounts/api/v1/pre-subscription",
         userData
       );
-      console.log({response})
+      console.log({ response });
 
       toast.success("Profile Registered successfully!", {
         position: "top-right",
@@ -210,6 +212,9 @@ export const PrivateForm = () => {
           className="h-12 pr-10 pl-4 shadow-md rounded-md"
           id="city"
         />
+        {/* {errors.city && (
+  <span className="text-red-500">{errors.city.message}</span>
+)} */}
         {isDropdownOpen && filteredCities.length > 0 && (
           <div className="absolute top-full left-0 w-full bg-white border rounded-lg shadow-md z-50">
             <Command className="w-full">
@@ -250,6 +255,9 @@ export const PrivateForm = () => {
           placeholder="Numéro de téléphone"
           inputStyle={{ height: "48px", width: "100%", borderRadius: "8px" }}
         />
+        {/* {errors.phone && (
+  <span className="text-red-500">{errors.phone.message}</span>
+)} */}
       </div>
 
       <Button
