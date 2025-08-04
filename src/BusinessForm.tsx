@@ -132,6 +132,8 @@ export const BusinessForm = () => {
         userData
       );
 
+      console.log({ response });
+
       toast.success("Business Profile Registered successfully!", {
         position: "top-right",
         autoClose: 2000,

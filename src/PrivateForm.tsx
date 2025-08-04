@@ -126,6 +126,7 @@ export const PrivateForm = () => {
         "https://api.swish.ma/accounts/api/v1/pre-subscription",
         userData
       );
+      console.log({response})
 
       toast.success("Profile Registered successfully!", {
         position: "top-right",
