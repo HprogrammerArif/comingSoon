@@ -156,7 +156,7 @@ export const PrivateForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 mb-10">
       <div>
         <label
           htmlFor="fullName"

@@ -159,7 +159,7 @@ export const BusinessForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 mb-10">
       <div>
         <label
           htmlFor="companyName"
